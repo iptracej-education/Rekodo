@@ -9,13 +9,11 @@ Rekodo combines a minimal runtime core with an extensible user-space orchestrati
 
 ## Core Foundation
 
-Agent context is temporary; Rekodo's record is not. Even after context compression or restart, every input, assignment, and result that passes through Rekodo remains available in one canonical, ordered history.
+Rekodo is a framework for coordinating multi-agent work while preserving what happened during each run. It records the user’s input, every assignment, and every returned result in one durable, ordered history, so the work can be understood and resumed even after context compression or restart.
 
-The runtime records that history and relays each recorded exchange. Planning, Task Contract generation, evaluation, memory, skills, and improvement remain in user space, where they can evolve without expanding the runtime.
+Rekodo separates two jobs. A small runtime records and passes each exchange, while a separate orchestration layer decides which agent or tool should act, what it should receive, and what should happen next. This keeps the runtime stable while allowing each project to customize how work is planned, checked, and improved.
 
-Queries and evaluators use the recorded history to show what worked, what failed, and what may need to change. Rekodo does not decide what “better” means; each project defines its own evidence and acceptance rules.
-
-At cold start, Rekodo has no run-derived memory or learned skills. Improvement begins when findings are evaluated, accepted, and explicitly carried into later runs.
+Rekodo improves work from recorded results and evaluations. During a run, an improvement strategy may request critique, verification, revision, retry, or human review. After a run, accepted findings may be carried forward as memory, skills, policies, or better orchestration for later runs.
 
 See [Foundation](docs/arch/foundation.md) for the complete design principles.
 
