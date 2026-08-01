@@ -96,4 +96,4 @@ For every use of an improvement strategy, Rekodo records:
 This makes improvement attempts attributable and allows different strategies to
 be compared without changing the Rekodo Runtime.
 
-<<: [README](../../README.md) | <: [BACK - Orchestration Patterns](orchestration-patterns.md) | [NEXT - Evaluator](evaluators.md)>:  
+<<: [README](../../README.md) | <: [BACK - Orchestration Patterns](orchestration-patterns.md) | [NEXT - Evaluators](evaluators.md)>:  
