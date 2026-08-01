@@ -5,13 +5,15 @@ Minimal, improvable orchestration for multi-agent runs. Every run recorded and t
 Rekodo combines a minimal runtime core with an extensible user-space orchestration framework. 
 
 > [!NOTE]
-> This project is heavly in progress. Once an alpha version is completed, the execution code will be published. 
+> This project is in progress. Once an alpha version is completed, the execution code will be published. 
 
 ## Core Foundation
 
-Rekodo records each run as one ordered, canonical history, so agents and humans share the same record of what was assigned, decided, and returned—even after context compression or restart.
+Agent context is temporary; Rekodo’s record is not. Even after context compression or restart, the assignments, decisions, and results that pass through Rekodo remain available in one ordered history.
 
-The runtime only records, orders, relays, and replays this history. Planning, Task Contract generation, evaluation, and improvement remain in user space, so they can evolve without changing the runtime.
+The minimal runtime records, orders, relays, and replays that history. A replaceable user-space orchestrator decides what happens next and may use Task Contract Programs, orchestration patterns, evaluators, memory, skills, and improvement strategies without changing the runtime.
+
+At cold start, Rekodo has no run-derived memory or learned skills. Improvement begins when evaluated findings are explicitly accepted and carried into later runs.
 
 See [Foundation](docs/arch/foundation.md) for the complete design principles.
 
@@ -36,21 +38,9 @@ The runtime does not select tasks or workers, interpret project contracts, const
 
 ### Rekodo Orchestrator
 
-The Rekodo Orchestrator is the programmable user-space framework where intelligent and project-specific behavior lives. It is not an LLM itself, but it may combine ordinary program logic with commercial, open-source, or local LLMs.
+Rekodo provides a default orchestrator as a separate user-space component. It is replaceable: applications may extend it or bring their own orchestrator as long as they use the Rekodo Runtime protocol.
 
-The orchestrator is responsible for:
-
-- selecting the next task and its recipient;
-- applying an orchestration pattern;
-- running a Task Contract Program to produce a controlled assignment;
-- applying project contracts such as `AGENTS.md`, implementation requirements, plans, and accepted decisions;
-- selecting relevant skills, artifacts, and prior evidence;
-- invoking evaluators and using their evidence;
-- applying an improvement strategy;
-- deciding retries, branches, human escalation, and run completion.
-
-The orchestrator submits completed Task Contracts through the Rekodo Runtime and receives only results that the runtime has already recorded. It is part of the Rekodo project while remaining outside the minimal runtime boundary.
-
+The orchestrator may combine ordinary program logic with commercial, open-source, or local LLMs. Each run records the orchestrator implementation, version, configuration, and the versions of its selected Task Contract Programs, patterns, strategies, and evaluators.
 
 The orchestration framework separates four areas of capabilities:
 
@@ -60,7 +50,25 @@ The orchestration framework separates four areas of capabilities:
 - [Evaluators](docs/arch/evaluators.md) — Supply evidence about correctness, quality, completion, cost, or latency.
 
 
-### A Example Run
+### Run Programs and Replay
+
+The Rekodo Orchestration Framework produces an executable Run Program for each
+run. A Run Program contains the user-space orchestration logic used to select
+tasks, construct Task Contracts, invoke workers and evaluators, and react to
+recorded outcomes.
+
+Rekodo records the exact Run Program and its inputs before they affect
+execution. Replay executes this recorded program in a compatible environment;
+it does not require the original Orchestration Framework implementation that
+produced it.
+
+The framework implementation may be recorded for provenance or regeneration,
+but the Run Program—not the framework version—is the replay dependency.
+Executing the program with recorded external observations reconstructs the
+original run. Executing it against live models, tools, or humans creates a new
+rerun whose results may differ.
+
+### An Example Run
 
 Here is the simplest run example using Rekodo runtime and Orchestration capabilities: 
 
@@ -86,7 +94,7 @@ Improvement strategy accepts, revises, retries, escalates, or completes
 
 The orchestrator decides what happens. The runtime records and relays what happens.
 
-<<: [README](README.md)
+
 
 
 
