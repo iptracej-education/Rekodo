@@ -20,7 +20,7 @@ See [Foundation](docs/arch/foundation.md) for the complete design principles.
 Rekodo has two architectural layers: the **Rekodo Runtime** and the **Rekodo Orchestrator**. 
 
 ![Recode Architecture](./docs/arch/diagram.png)
-(Developed by ChatGPT) 
+(By GPT-5.6-sol) 
 
 ### Rekodo Runtime
 
