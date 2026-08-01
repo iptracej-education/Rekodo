@@ -13,7 +13,7 @@ Rekodo records each run as one ordered, canonical history, so agents and humans 
 
 The runtime only records, orders, relays, and replays this history. Planning, Task Contract generation, evaluation, and improvement remain in user space, so they can evolve without changing the runtime.
 
-See [Foundation](Foundation.md) for the complete design principles.
+See [Foundation](docs/arch/foundation.md) for the complete design principles.
 
 ## Architecture
 
@@ -51,10 +51,10 @@ The orchestrator submits completed Task Contracts through the Rekodo Runtime and
 
 The orchestration framework separates four areas of capabilities:
 
-- [Task Contract Programs](TaskContractPrograms.md) — Produce structured, policy-controlled assignments for agents and tools.
-- [Orchestration Patterns](OrchestrationPatterns.md) — Organize roles and tasks into sequential, iterative, or parallel work.
-- [Improvement Strategies](ImprovementStrategy.md) — Decide what should follow a result, such as acceptance, critique, verification, revision, or escalation.
-- [Evaluators](Evaluators.md) — Supply evidence about correctness, quality, completion, cost, or latency.
+- [Task Contract Programs](docs/arch/task-contract-programs.md) — Produce structured, policy-controlled assignments for agents and tools.
+- [Orchestration Patterns](docs/arch/orchestration-patterns.md) — Organize roles and tasks into sequential, iterative, or parallel work.
+- [Improvement Strategies](docs/arch/improvement-strategy.md) — Decide what should follow a result, such as acceptance, critique, verification, revision, or escalation.
+- [Evaluators](docs/arch/evaluators.md) — Supply evidence about correctness, quality, completion, cost, or latency.
 
 
 ### A Example Run
@@ -83,7 +83,7 @@ Improvement strategy accepts, revises, retries, escalates, or completes
 
 The orchestrator decides what happens. The runtime records and relays what happens.
 
-[[Top](#Rekodo#README.md)]
+<<: [README](README.md)
 
 
 
