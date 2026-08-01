@@ -5,15 +5,17 @@ Minimal, improvable orchestration for multi-agent runs. Every run recorded and t
 Rekodo combines a minimal runtime core with an extensible user-space orchestration framework. 
 
 > [!NOTE]
-> This project is in progress. Once an alpha version is completed, the execution code will be published. 
+> Rekodo is under active development. Execution code will be published with the first alpha release. 
 
 ## Core Foundation
 
-Agent context is temporary; Rekodo’s record is not. Even after context compression or restart, the assignments, decisions, and results that pass through Rekodo remain available in one ordered history.
+Agent context is temporary; Rekodo's record is not. Even after context compression or restart, every input, assignment, and result that passes through Rekodo remains available in one canonical, ordered history.
 
-The minimal runtime records, orders, relays, and replays that history. A replaceable user-space orchestrator decides what happens next and may use Task Contract Programs, orchestration patterns, evaluators, memory, skills, and improvement strategies without changing the runtime.
+The runtime records that history and relays each recorded exchange. Planning, Task Contract generation, evaluation, memory, skills, and improvement remain in user space, where they can evolve without expanding the runtime.
 
-At cold start, Rekodo has no run-derived memory or learned skills. Improvement begins when evaluated findings are explicitly accepted and carried into later runs.
+Queries and evaluators use the recorded history to show what worked, what failed, and what may need to change. Rekodo does not decide what “better” means; each project defines its own evidence and acceptance rules.
+
+At cold start, Rekodo has no run-derived memory or learned skills. Improvement begins when findings are evaluated, accepted, and explicitly carried into later runs.
 
 See [Foundation](docs/arch/foundation.md) for the complete design principles.
 
@@ -26,78 +28,81 @@ Rekodo has two architectural layers: the **Rekodo Runtime** and the **Rekodo Orc
 
 ### Rekodo Runtime
 
-The Rekodo Runtime remains deliberately unintelligent. It understands only
-generic execution information and is responsible for:
+TThe Rekodo Runtime remains deliberately unintelligent. It understands only generic execution information and is responsible for:
 
 - recording an input before making it available to orchestration;
 - recording a Task Contract before delivering it to its declared worker;
-- recording a result before relaying it to orchestration;
+- recording a result or evaluation before relaying it to orchestration;
 - assigning a canonical order to recorded events;
-- mediating and recording every nondeterministic observation that can affect a
-  Run Program;
-- supplying recorded observations instead of contacting live external systems
-  during replay;
 - preserving and exposing the canonical history.
 
-The runtime does not select tasks or workers, interpret project contracts,
-construct worker assignments, evaluate results, or decide what happens next.
-It records, orders, and relays the execution chosen by the orchestrator.
+The runtime does not select tasks or workers, interpret project contracts, construct worker assignments, evaluate results, or decide what happens next. It records, orders, and relays the execution chosen by user-space orchestration.
 
-A replayable Run Program must not obtain execution-relevant time, randomness,
-network responses, model outputs, tool results, human input, or mutable
-environment state outside Rekodo’s recorded boundary.
+After context compression or process restart, the orchestrator can reconstruct what has already happened from the canonical history instead of depending on an agent's retained conversation state.
 
 ### Rekodo Orchestrator
 
-Rekodo provides a default orchestrator as a separate user-space component. It is replaceable: applications may extend it or bring their own orchestrator as long as they use the Rekodo Runtime protocol.
+Rekodo provides a default orchestrator as a separate, replaceable user-space component. Applications may extend it or bring their own orchestrator as long as they communicate through the Rekodo Runtime protocol.
 
-The orchestrator may combine ordinary program logic with commercial, open-source, or local LLMs. Each run records the orchestrator implementation, version, configuration, and the versions of its selected Task Contract Programs, patterns, strategies, and evaluators.
+The orchestrator is a programmable framework, not an LLM. It may combine ordinary program logic with commercial, open-source, or local LLMs as reasoning components.
 
-For provenance, a run may record the orchestration framework and component versions that produced its Run Program. Replay depends on the recorded Run Program and its compatible execution environment.
+The orchestrator controls the run. It is responsible for:
 
-The orchestration framework separates four areas of capabilities:
+- selecting the next task and its recipient;
+- applying an orchestration pattern;
+- running a Task Contract Program for each worker assignment;
+- applying project contracts such as `AGENTS.md`, implementation requirements, plans, and accepted decisions;
+- selecting relevant skills, artifacts, and prior evidence;
+- querying recorded events and derived views of previous work;
+- invoking evaluators and consuming their evidence;
+- applying an improvement strategy;
+- deciding retries, branches, human escalation, and run completion.
+
+A **Task Contract Program** is not the orchestrator. It is a programmable component used by the orchestrator to produce one structured, policy-controlled Task Contract for one worker assignment.
+
+The orchestrator submits completed Task Contracts through the Rekodo Runtime and receives only results that the runtime has already recorded. It remains outside the minimal runtime boundary.
+
+
+### Orchestration Capabilities
+
+The user-space orchestration framework separates four concerns:
 
 - [Task Contract Programs](docs/arch/task-contract-programs.md) — Produce structured, policy-controlled assignments for agents and tools.
 - [Orchestration Patterns](docs/arch/orchestration-patterns.md) — Organize roles and tasks into sequential, iterative, or parallel work.
-- [Improvement Strategies](docs/arch/improvement-strategy.md) — Decide what should follow a result, such as acceptance, critique, verification, revision, or escalation.
-- [Evaluators](docs/arch/evaluators.md) — Supply evidence about correctness, quality, completion, cost, or latency.
+- [Improvement Strategies](docs/arch/improvement-strategy.md) — Propose what should follow a result, such as acceptance, critique, verification, revision, retry, or escalation.
+- [Evaluators](docs/arch/evaluators.md) — Supply evidence about correctness, quality, or completion.
 
-
-### Run Programs and Replay
-
-The Rekodo Orchestration Framework produces an executable Run Program for each run. Rekodo records the exact Run Program, its configuration, and its inputs before execution.
-
-A Run Program is deterministic with respect to its recorded history: every external observation that can affect execution must pass through Rekodo. During a live run, Rekodo records observations such as time, randomness, model responses, tool results, human input, and mutable environment state. During replay, Rekodo supplies those recorded observations instead of contacting the live external systems again.
-
-Given the same Run Program and recorded history, replay follows the same execution path. The original orchestration framework may be recorded for provenance or regeneration, but it is not a replay dependency.
-
-Executing the same Run Program against live models, tools, humans, or other external systems is a rerun, not a replay, and may produce different results.
+Patterns organize the work. Task Contract Programs define controlled assignments. Improvement strategies propose what follows an outcome. Evaluators supply the evidence. Queries derive operational measurements from the recorded history. The runtime records and relays the execution.
 
 ### An Example Run
 
-Here is the simplest run example using Rekodo runtime and Orchestration capabilities: 
-
 ```text
-User submits a task
+User submits a task through a client
         ↓
 Runtime records the input
         ↓
-Orchestrator selects a worker and orchestration pattern
+Orchestrator selects the next task and worker
         ↓
 Task Contract Program produces a controlled assignment
         ↓
 Runtime records and delivers the Task Contract
         ↓
-Worker performs the assignment and returns a result
+Worker (agent or tool) performs the assignment and returns a result
         ↓
 Runtime records and relays the result
         ↓
 Evaluator supplies evidence
         ↓
-Improvement strategy accepts, revises, retries, escalates, or completes
+Runtime records and relays the evaluation
+        ↓
+Improvement strategy proposes what should happen next
+        ↓
+Orchestrator accepts, revises, retries, escalates, or completes
+        ↓
+Runtime records the next action or completion
 ```
 
-The orchestrator decides what happens. The runtime records and relays what happens.
+The orchestrator decides what happens next. The runtime records and relays each execution exchange.
 
 
 
