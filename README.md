@@ -26,21 +26,34 @@ Rekodo has two architectural layers: the **Rekodo Runtime** and the **Rekodo Orc
 
 ### Rekodo Runtime
 
-The Rekodo Runtime remains deliberately unintelligent. It understands only generic execution information and is responsible for:
+The Rekodo Runtime remains deliberately unintelligent. It understands only
+generic execution information and is responsible for:
 
 - recording an input before making it available to orchestration;
 - recording a Task Contract before delivering it to its declared worker;
 - recording a result before relaying it to orchestration;
 - assigning a canonical order to recorded events;
-- preserving, replaying, and exposing the recorded history.
+- mediating and recording every nondeterministic observation that can affect a
+  Run Program;
+- supplying recorded observations instead of contacting live external systems
+  during replay;
+- preserving and exposing the canonical history.
 
-The runtime does not select tasks or workers, interpret project contracts, construct worker assignments, evaluate results, or decide what happens next. It records, orders, and relays the execution chosen by the orchestrator.
+The runtime does not select tasks or workers, interpret project contracts,
+construct worker assignments, evaluate results, or decide what happens next.
+It records, orders, and relays the execution chosen by the orchestrator.
+
+A replayable Run Program must not obtain execution-relevant time, randomness,
+network responses, model outputs, tool results, human input, or mutable
+environment state outside Rekodo’s recorded boundary.
 
 ### Rekodo Orchestrator
 
 Rekodo provides a default orchestrator as a separate user-space component. It is replaceable: applications may extend it or bring their own orchestrator as long as they use the Rekodo Runtime protocol.
 
 The orchestrator may combine ordinary program logic with commercial, open-source, or local LLMs. Each run records the orchestrator implementation, version, configuration, and the versions of its selected Task Contract Programs, patterns, strategies, and evaluators.
+
+For provenance, a run may record the orchestration framework and component versions that produced its Run Program. Replay depends on the recorded Run Program and its compatible execution environment.
 
 The orchestration framework separates four areas of capabilities:
 
@@ -52,21 +65,13 @@ The orchestration framework separates four areas of capabilities:
 
 ### Run Programs and Replay
 
-The Rekodo Orchestration Framework produces an executable Run Program for each
-run. A Run Program contains the user-space orchestration logic used to select
-tasks, construct Task Contracts, invoke workers and evaluators, and react to
-recorded outcomes.
+The Rekodo Orchestration Framework produces an executable Run Program for each run. Rekodo records the exact Run Program, its configuration, and its inputs before execution.
 
-Rekodo records the exact Run Program and its inputs before they affect
-execution. Replay executes this recorded program in a compatible environment;
-it does not require the original Orchestration Framework implementation that
-produced it.
+A Run Program is deterministic with respect to its recorded history: every external observation that can affect execution must pass through Rekodo. During a live run, Rekodo records observations such as time, randomness, model responses, tool results, human input, and mutable environment state. During replay, Rekodo supplies those recorded observations instead of contacting the live external systems again.
 
-The framework implementation may be recorded for provenance or regeneration,
-but the Run Program—not the framework version—is the replay dependency.
-Executing the program with recorded external observations reconstructs the
-original run. Executing it against live models, tools, or humans creates a new
-rerun whose results may differ.
+Given the same Run Program and recorded history, replay follows the same execution path. The original orchestration framework may be recorded for provenance or regeneration, but it is not a replay dependency.
+
+Executing the same Run Program against live models, tools, humans, or other external systems is a rerun, not a replay, and may produce different results.
 
 ### An Example Run
 
